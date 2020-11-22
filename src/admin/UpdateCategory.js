@@ -1,17 +1,34 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { isAuthenticated } from "../auth/helper"
 // Importing components
 import Base from "../core/Base"
 // Importing API call functions
-import { createCategory } from "./helper/adminapicall"
+import { UpdateaCategory, getCategory } from "./helper/adminapicall"
 
-const AddCategory = () => {
+const UpdateCategory = ({ match }) => {
   const [name, setName] = useState("")
+  const [category, setCategory] = useState("")
   const [error, setError] = useState(false)
   const [success, setSuccess] = useState(false)
 
   const { user, token } = isAuthenticated()
+
+  const loadCategories = (catgoryId) => {
+    getCategory(catgoryId).then((data) => {
+      // console.dir(data)
+      if (data.error) {
+        return setError(data.error)
+      } else {
+        setCategory(data)
+        setName(data.name)
+      }
+    })
+  }
+
+  useEffect(() => {
+    loadCategories(match.params.categoryId)
+  }, [])
 
   const goBack = () => {
     return (
@@ -35,13 +52,14 @@ const AddCategory = () => {
     setSuccess(false)
 
     // Making request
-    createCategory(user._id, token, { name }).then((data) => {
+    UpdateaCategory(category._id, user._id, token, { name }).then((data) => {
       if (data.error) {
         setError(data.error)
       } else {
         setError("")
         setSuccess(true)
-        setName("")
+        setCategory(data)
+        setName(data.name)
       }
     })
   }
@@ -49,7 +67,7 @@ const AddCategory = () => {
   const successMessage = () =>
     success && (
       <div className="alert alert-success">
-        <h6>Category Created</h6>
+        <h6>Category Updated</h6>
       </div>
     )
 
@@ -64,7 +82,7 @@ const AddCategory = () => {
     return (
       <form>
         <div className="form-group">
-          <h3 className="mb-3">Enter the category</h3>
+          <h3 className="mb-3">Update the category</h3>
           <input
             type="text"
             onChange={handleChange}
@@ -84,8 +102,8 @@ const AddCategory = () => {
 
   return (
     <Base
-      title="Create a category here"
-      description="Add a new category for tshirts"
+      title="Update category here"
+      description="Update a new category for tshirts"
       className="container my-4 p-4 text-white rounded bg-custom">
       <div className="row">
         <div className="col-md-2">{goBack()}</div>
@@ -99,4 +117,4 @@ const AddCategory = () => {
   )
 }
 
-export default AddCategory
+export default UpdateCategory
